@@ -1,0 +1,35 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.a
+*.h
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Vendor go mod vendor
+*/vendor
+.vendor-new/
+vendor/
+
+#OSX
+*.DS_Store
+*.swp
+
+#VSCode
+.vscode/
+
+#C File
+*/driver
+driver/
+*/vcam_strm
+vcam_strm/
+
+#Key file
+.key
