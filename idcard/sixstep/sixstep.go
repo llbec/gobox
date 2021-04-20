@@ -7,7 +7,7 @@ import (
 	"time"
 
 	//"regexp"
-	types "gobox/govcncode"
+	types "gobox/idcard/govcncode"
 )
 
 //SixStep defines a console with six steps
@@ -137,7 +137,7 @@ func (s *SixStep) Run() {
 				//birthday
 				//redate := regexp.MustCompile("^[\\d]{8}$")
 				if input == "" {
-					input = "19960602"
+					input = "19970602"
 				}
 				i, err := strconv.Atoi(input)
 				if err != nil {
