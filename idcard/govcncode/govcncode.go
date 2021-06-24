@@ -2,6 +2,8 @@ package govcncode
 
 import (
 	//"fmt"
+	"log"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,7 +20,16 @@ var _ AddressCode = (*GovCnCode)(nil)
 
 //NewGovCnCode create a new china area code object
 func NewGovCnCode() *GovCnCode {
-	doc, err := goquery.NewDocument("http://www.gov.cn/test/2011-08/22/content_1930111.htm")
+	res, err := http.Get("http://www.gov.cn/test/2011-08/22/content_1930111.htm")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+	}
+
+	doc, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		panic(err)
 	}
@@ -36,11 +47,12 @@ type record struct {
 //GetProvinceList get a string list about all Provinces
 func (addrCode *GovCnCode) GetProvinceList() []*Province {
 	var records []*Province
+	//addrCode.document.Find("span@content").Each(func(i int, s *goquery.Selection) {
 	addrCode.document.Find("span").Each(func(i int, s *goquery.Selection) {
 		//fmt.Printf(s.Text())
 		texts := strings.Split(s.Text(), "\n")
 		//fmt.Println(len(texts))
-		reCode := regexp.MustCompile("^[\\d]{6}")
+		reCode := regexp.MustCompile("^[0-9]{6}")
 		reName := regexp.MustCompile("[\u4e00-\u9fa5]+$")
 		var (
 			province *Province
@@ -80,7 +92,7 @@ func (addrCode *GovCnCode) GetProvinceList() []*Province {
 		}
 		records = append(records, province)
 		//fmt.Println(len(records))
-		return
+		//return
 	})
 	return records
 }
