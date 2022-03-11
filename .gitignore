@@ -34,3 +34,7 @@ vcam_strm/
 
 #Key file
 .key
+
+#Pause
+adb/
+cmd/
