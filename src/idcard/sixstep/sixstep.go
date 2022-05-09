@@ -7,7 +7,7 @@ import (
 	"time"
 
 	//"regexp"
-	types "gobox/idcard/govcncode"
+	types "gobox/src/idcard/govcncode"
 )
 
 //SixStep defines a console with six steps

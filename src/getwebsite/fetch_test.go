@@ -2,7 +2,9 @@ package getwebsite
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/PuerkitoBio/goquery"
@@ -39,4 +41,16 @@ func Test_Fetch(t *testing.T) {
 		}*/
 		fmt.Println(i, name, url)
 	})
+}
+
+func Test_reg(t *testing.T) {
+	doc, err := ioutil.ReadFile(testFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	reg := regexp.MustCompile(`\"https://github.com\S+\"`)
+	urls := reg.FindAll(doc, -1)
+	for i, u := range urls {
+		fmt.Println(i, string(u))
+	}
 }

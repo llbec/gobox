@@ -4,7 +4,7 @@ import (
 	//"fmt"
 	"testing"
 
-	"gobox/idcard/govcncode"
+	"gobox/src/idcard/govcncode"
 	//"personid/types"
 )
 

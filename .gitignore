@@ -6,7 +6,6 @@
 *.dylib
 *.a
 *.h
-personid
 
 # Test binary, build with `go test -c`
 *.test
