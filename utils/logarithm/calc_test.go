@@ -1,4 +1,4 @@
-package benford
+package logarithm
 
 import (
 	"fmt"
@@ -20,4 +20,11 @@ func Test_LogaN(t *testing.T) {
 		t.Errorf("The real number is invalid, %v %v\n", n, n1)
 	}
 	fmt.Printf("Log(%v)(%v) = %v\n%v ^ %v = %v\n%v ^ (1/%v) = %v\n", a, n, m, a, m, n1, n, m, a1)
+}
+
+func Test_benford(t *testing.T) {
+	a := rand.Uint32()
+	b := rand.Uint32()
+	m := Benford(uint(a), uint(b))
+	fmt.Printf("Log(%v)((%v+1)/%v) = %v\n", b, a, a, m)
 }

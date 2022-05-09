@@ -1,8 +1,10 @@
-package files
+package utils
 
 import (
 	"bufio"
 	"io"
+	"io/ioutil"
+	"net/http"
 	"os"
 )
 
@@ -26,6 +28,7 @@ func ReadFile(filePath string) ([]byte, error) {
 		output = append(output, []byte("\n")...)
 	}
 	return output, nil
+	//return ioutil.ReadFile(filePath)
 }
 
 func WriteToFile(filePath string, outPut []byte) error {
@@ -41,4 +44,13 @@ func WriteToFile(filePath string, outPut []byte) error {
 	}
 	writer.Flush()
 	return nil
+}
+
+func ReadWebSite(url string) ([]byte, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
 }
