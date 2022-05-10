@@ -11,20 +11,20 @@ import (
 
 var (
 	contentMap map[string]string
-	linkMap    map[string]string
-	orgMap     map[string]*Organization
+	//linkMap    map[string]string
+	//orgMap     map[string]*Organization
 	//cacheOrg   *Organization
 	baseURL string
 )
 
 func init() {
 	contentMap = make(map[string]string)
-	linkMap = make(map[string]string)
-	orgMap = make(map[string]*Organization)
+	//linkMap = make(map[string]string)
+	//orgMap = make(map[string]*Organization)
 	baseURL = "https://github.com"
 }
 
-func GetContent() (map[string]string, error) {
+func getContent() (map[string]string, error) {
 	resp, err := website.GetWeb("https://github.com/electric-capital/crypto-ecosystems/tree/master/data/ecosystems")
 	if err != nil {
 		return nil, err
@@ -57,11 +57,23 @@ func GetContent() (map[string]string, error) {
 	return contentMap, nil
 }
 
-func GetLink(name, url string) (string, error) {
+func (elec *ElecInfo) getArchive(name string) (string, error) {
 	name = nameFormat(name)
-	tgt := name + ".toml"
-	if linkMap[tgt] != "" {
-		return linkMap[tgt], nil
+	arc := elec.ArchiveMap[name[0:1]]
+	if arc == "" {
+		return "", fmt.Errorf("have no archive about %s(%s)", name[0:1], name)
+	}
+	return arc, nil
+}
+
+func (elec *ElecInfo) getLink(name string) (string, error) {
+	name = nameFormat(name) + ".toml"
+	if elec.linkMap[name] != "" {
+		return elec.linkMap[name], nil
+	}
+	url, err := elec.getArchive(name)
+	if err != nil {
+		return "", err
 	}
 	resp, err := website.GetWeb(url)
 	if err != nil {
@@ -85,24 +97,22 @@ func GetLink(name, url string) (string, error) {
 		if !ok {
 			return
 		}
-		linkMap[k] = baseURL + v
+		elec.linkMap[k] = baseURL + v
 	})
-	if linkMap[tgt] == "" {
-		return "", fmt.Errorf("GetLink: there's no %v item", tgt)
+	if elec.linkMap[name] == "" {
+		return "", fmt.Errorf("Page(%s) without %s", url, name)
 	}
-	return linkMap[tgt], nil
+	return elec.linkMap[name], nil
 }
 
-func GetOrg(name string) (*Organization, error) {
+func (elec *ElecInfo) GetOrg(name string) (*Organization, error) {
 	name = nameFormat(name)
-	if orgMap[name] != nil {
-		return orgMap[name], nil
+
+	if org := elec.Orgs[name]; org != nil {
+		return org, nil
 	}
-	url := contentMap[name[0:1]]
-	if url == "" {
-		return nil, fmt.Errorf("GetOrg: have no content about %v", name)
-	}
-	link, err := GetLink(name, url)
+
+	link, err := elec.getLink(name)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +137,7 @@ func GetOrg(name string) (*Organization, error) {
 	index = 4 //subsysterms
 	if v := getPLsText(tbody, index); v != "" {
 		v = v[1 : len(v)-1]
-		newOrg.AddSub(v)
+		newOrg.AddSub(v, elec)
 	}
 	index = 5
 	for ; index <= l; index++ {
@@ -137,7 +147,7 @@ func GetOrg(name string) (*Organization, error) {
 			break
 		}
 		v = v[1 : len(v)-1]
-		newOrg.AddSub(v)
+		newOrg.AddSub(v, elec)
 	}
 
 	index += 2 //github_organizations
@@ -145,7 +155,9 @@ func GetOrg(name string) (*Organization, error) {
 		v = v[1 : len(v)-1]
 		newOrg.SetGithub(v)
 	}
-	orgMap[name] = newOrg
+
+	elec.Orgs[name] = newOrg
+
 	return newOrg, nil
 }
 

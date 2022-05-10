@@ -50,6 +50,6 @@ func Test_reg(t *testing.T) {
 	//reg := regexp.MustCompile(`\"https://github.com\S+\"`)
 	urls := GetGithubUrl(doc)
 	for i, u := range urls {
-		fmt.Println(i, string(u))
+		fmt.Println(i, u)
 	}
 }

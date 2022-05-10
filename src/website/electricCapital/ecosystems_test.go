@@ -6,7 +6,7 @@ import (
 )
 
 func Test_Ecosystems(t *testing.T) {
-	m, e := GetContent()
+	m, e := getContent()
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -17,7 +17,8 @@ func Test_Ecosystems(t *testing.T) {
 }
 
 func Test_link(t *testing.T) {
-	link, err := GetLink("arbitrum", "https://github.com/electric-capital/crypto-ecosystems/blob/master/data/ecosystems/a")
+	el := NewElecInfo()
+	link, err := el.getLink("arbitrum")
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -27,8 +28,8 @@ func Test_link(t *testing.T) {
 func Test_getOrg(t *testing.T) {
 	//contentMap["a"] = "https://github.com/electric-capital/crypto-ecosystems/blob/master/data/ecosystems/a/arbitrum.toml"
 	//linkMap["arbitrum.toml"] = "https://github.com/electric-capital/crypto-ecosystems/blob/master/data/ecosystems/a/arbitrum.toml"
-	GetContent()
-	arb, err := GetOrg("arbitrum")
+	el := NewElecInfo()
+	arb, err := el.GetOrg("arbitrum")
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

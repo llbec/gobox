@@ -5,13 +5,14 @@ import (
 	"regexp"
 )
 
-func GetGithubUrl(doc []byte) [][]byte {
+func GetGithubUrl(doc []byte) []string {
 	reg := regexp.MustCompile(`\"https://github.com\S+\"`)
 	urls := reg.FindAll(doc, -1)
+	var ul []string
 	for i, u := range urls {
-		urls[i] = urls[i][1 : len(u)-1]
+		ul = append(ul, string(urls[i][1:len(u)-1]))
 	}
-	return urls
+	return ul
 }
 
 func GetWeb(url string) (resp *http.Response, err error) {
