@@ -150,15 +150,26 @@ func (elec *ElecInfo) GetOrg(name string) (*Organization, error) {
 		newOrg.AddSub(v, elec)
 	}
 
-	index += 2 //github_organizations
-	if v := getPLsText(tbody, index); v != "" {
-		v = v[1 : len(v)-1]
-		newOrg.SetGithub(v)
+	index += 1 //github_organizations
+	//fmt.Println(index, "org git")
+	for ; index <= l; index++ {
+		if getPLsmiText(tbody, index) == "github_organizations" {
+			if v := getPLsText(tbody, index); v != "" {
+				v = v[1 : len(v)-1]
+				newOrg.SetGithub(v)
+			}
+		}
 	}
 
 	elec.Orgs[name] = newOrg
 
 	return newOrg, nil
+}
+
+func getPLsmiText(doc *goquery.Selection, i int) string {
+	td := doc.Find(fmt.Sprintf("td#LC%d", i))
+	s, _ := td.Find("span.pl-smi").Html()
+	return s
 }
 
 func getPLsText(doc *goquery.Selection, i int) string {

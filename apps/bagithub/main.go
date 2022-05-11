@@ -83,7 +83,8 @@ func electricList(name string) (urls []string, err error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, s := range org.GetSubs() {
+	subs := org.GetSubs()
+	for _, s := range subs {
 		url := s.GetGithub()
 		if url != "" {
 			urls = append(urls, url)

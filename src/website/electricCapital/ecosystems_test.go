@@ -18,18 +18,21 @@ func Test_Ecosystems(t *testing.T) {
 
 func Test_link(t *testing.T) {
 	el := NewElecInfo()
-	link, err := el.getLink("arbitrum")
+	link, err := el.getLink("arbirise")
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	fmt.Println(link)
+	//fmt.Println(link)
+	if link != "https://github.com/electric-capital/crypto-ecosystems/blob/master/data/ecosystems/a/arbirise.toml" {
+		t.Fatalf("expect\nhttps://github.com/electric-capital/crypto-ecosystems/blob/master/data/ecosystems/a/arbirise.toml\nget\n%s\n", link)
+	}
 }
 
 func Test_getOrg(t *testing.T) {
 	//contentMap["a"] = "https://github.com/electric-capital/crypto-ecosystems/blob/master/data/ecosystems/a/arbitrum.toml"
 	//linkMap["arbitrum.toml"] = "https://github.com/electric-capital/crypto-ecosystems/blob/master/data/ecosystems/a/arbitrum.toml"
 	el := NewElecInfo()
-	arb, err := el.GetOrg("arbitrum")
+	arb, err := el.GetOrg("arbirise")
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
