@@ -54,7 +54,7 @@ func main() {
 }
 
 func webList(url string) (urls []string, err error) {
-	resp, err := website.GetWeb(fWeb)
+	resp, err := website.GetWeb(url)
 	if err != nil {
 		return
 	}
