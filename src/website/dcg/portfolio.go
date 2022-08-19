@@ -9,6 +9,7 @@ import (
 
 var (
 	Portfolio []*Company
+	Map       map[string]*Company
 )
 
 func init() {
@@ -35,12 +36,15 @@ func FillPortfolio(url string) error {
 	}
 	sector := ""
 	Portfolio = Portfolio[:0]
+	Map = make(map[string]*Company)
 	for _, n := range left.Children().Nodes {
 		q := goquery.NewDocumentFromNode(n)
 		if q.Is("h2.header") {
 			sector = q.Text()
 		} else {
-			Portfolio = append(Portfolio, getCompany(sector, q))
+			comp := getCompany(sector, q)
+			Portfolio = append(Portfolio, comp)
+			Map[comp.Name] = comp
 		}
 	}
 	return nil
