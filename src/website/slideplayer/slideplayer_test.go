@@ -2,6 +2,8 @@ package slideplayer
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"testing"
 
@@ -36,6 +38,30 @@ func Test_SlideDoc(t *testing.T) {
 	fmt.Println(slide.Html())
 
 	fmt.Println(slide.Find("img").Attr("src"))
+}
+
+func Test_WgetImg(t *testing.T) {
+	resp, err := http.Get("https://slidesplayer.com/slide/14366206//89/14366206/slides/slide_1.jpg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	/*content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(string(content))*/
+	out, err := os.Create("slide_1.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer out.Close()
+
+	// 然后将响应流和文件流对接起来
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
 func Test_ImageList(t *testing.T) {
