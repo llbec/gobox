@@ -11,7 +11,7 @@ import (
 
 var (
 	doc     *goquery.Document
-	baseurl = "https://slidesplayer.com/slide/14366206/"
+	baseurl = "https://slidesplayer.com/slide/14366206"
 )
 
 func LoadDocuments(file string) (err error) {
@@ -61,10 +61,7 @@ func SaveImg(url string, name string) error {
 	defer resp.Body.Close()
 
 	// 创建一个文件用于保存
-	dir, _ := os.Getwd()
-	dir += "\\download\\"
-
-	out, err := os.Create(dir + name)
+	out, err := os.Create(name)
 	if err != nil {
 		return err
 	}

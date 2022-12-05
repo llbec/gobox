@@ -41,7 +41,7 @@ func Test_SlideDoc(t *testing.T) {
 }
 
 func Test_WgetImg(t *testing.T) {
-	resp, err := http.Get("https://slidesplayer.com/slide/14366206//89/14366206/slides/slide_1.jpg")
+	resp, err := http.Get("https://player.slidesplayer.com/89/14366206/slides/slide_93.jpg")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func Test_WgetImg(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(string(content))*/
-	out, err := os.Create("slide_1.html")
+	out, err := os.Create("slide_93.jpg")
 	if err != nil {
 		t.Fatal(err)
 	}
