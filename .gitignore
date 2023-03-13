@@ -33,6 +33,7 @@ vcam_strm/
 
 #Key file
 .key
+*.yaml
 
 #Pause
 adb/
