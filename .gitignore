@@ -38,3 +38,6 @@ vcam_strm/
 #Pause
 adb/
 cmd/
+
+#Output
+download/
