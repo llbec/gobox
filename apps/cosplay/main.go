@@ -143,6 +143,10 @@ func main() {
 	//n := getImagesNumber(doc)
 	//fmt.Println(n)
 	pageBaseURL, num := getPagesURL(doc)
+	if num == 0 {
+		fmt.Println(doc.Html())
+		return
+	}
 	for i := 0; i < num; i++ {
 		var page *goquery.Document
 		if i == 0 {
