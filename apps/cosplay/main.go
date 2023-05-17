@@ -62,6 +62,12 @@ func getPagesURL(doc *goquery.Document) (string, int) {
 		d := goquery.NewDocumentFromNode(node)
 		fmt.Println(d.Html())
 	}*/
+
+	if len(table.Nodes) == 0 {
+		fmt.Printf("page table length is %v, node number is %v\n", table.Length(), len(table.Nodes))
+		return "", 0
+	}
+
 	tb_end := goquery.NewDocumentFromNode(table.Nodes[table.Length()-2])
 	href, exist := tb_end.Find("a").Attr("href")
 	if exist != true {
@@ -117,6 +123,9 @@ func main() {
 	if err != nil {
 		myPanic(err)
 	}
+
+	//fmt.Printf("doc size is %v\n", doc.Size())
+	//fmt.Println(doc.Html())
 
 	//title := getTitle(doc)
 	downpath := fmt.Sprintf("%s\\%s", g_path, g_title)
