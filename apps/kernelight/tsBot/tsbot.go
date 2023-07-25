@@ -57,13 +57,13 @@ func main() {
 			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[0])))
 			file.WriteAt(bytes, pos)
 		} else if strings.Contains(line, "MOD_TIME_STAMP1") {
-			bytes := []byte(fmt.Sprintf("    module_map[MOD_TIME_STAMP1] = 0x%2X;", bs[1]))
+			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[1])))
 			file.WriteAt(bytes, pos)
 		} else if strings.Contains(line, "MOD_TIME_STAMP2") {
-			bytes := []byte(fmt.Sprintf("    module_map[MOD_TIME_STAMP2] = 0x%2X;", bs[2]))
+			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[2])))
 			file.WriteAt(bytes, pos)
 		} else if strings.Contains(line, "MOD_TIME_STAMP3") {
-			bytes := []byte(fmt.Sprintf("    module_map[MOD_TIME_STAMP3] = 0x%2X;", bs[3]))
+			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[3])))
 			file.WriteAt(bytes, pos)
 			return
 		}
