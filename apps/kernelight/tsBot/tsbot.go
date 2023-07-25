@@ -13,7 +13,8 @@ import (
 
 func main() {
 	bs := make([]byte, 4)
-	binary.BigEndian.PutUint32(bs, uint32(time.Now().Unix()))
+	timeUnix := time.Now().Unix()
+	binary.BigEndian.PutUint32(bs, uint32(timeUnix))
 
 	//读写方式打开文件
 	file, err := os.OpenFile("module_100glr4.c", os.O_RDWR, 0666)
@@ -52,7 +53,7 @@ func main() {
 		fmt.Println(line)
 
 		//根据关键词覆盖当前行
-		tsRegexp := regexp.MustCompile(`0x+;`)
+		tsRegexp := regexp.MustCompile(`0x[0-9a-fA-F]+;`)
 		if strings.Contains(line, "MOD_TIME_STAMP0") {
 			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[0])))
 			file.WriteAt(bytes, pos)
@@ -65,6 +66,9 @@ func main() {
 		} else if strings.Contains(line, "MOD_TIME_STAMP3") {
 			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[3])))
 			file.WriteAt(bytes, pos)
+
+			fmt.Printf("Timestamp update to %v\n", time.Unix(timeUnix, 0).Format("2006-01-02 15:04:05"))
+
 			return
 		}
 
