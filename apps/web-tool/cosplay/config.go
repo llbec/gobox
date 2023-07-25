@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -41,6 +42,8 @@ func loadCfg() {
 	g_path = cfg.GetString(PATH)
 	g_title = cfg.GetString(TITLE)
 	g_start = cfg.GetInt(START)
+
+	fmt.Printf("Download from %v\n", g_stURLs)
 }
 
 func myPanic(v any) {
