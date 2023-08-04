@@ -30,7 +30,7 @@ func (crv *Curve) Fitting() error {
 	Xv := []float64{}
 	Y := []float64{}
 
-	var matTheta, mat1, mat2 mat.Dense
+	var matTheta, mat1, m1Inv, mat2 mat.Dense
 
 	for i := 0; i < m; i++ {
 		for j := 0; j < crv.pow+1; j++ {
@@ -42,10 +42,14 @@ func (crv *Curve) Fitting() error {
 	matY := mat.NewDense(m, 1, Y)
 
 	mat1.Mul(matXv.T(), matXv)
-	if err := mat1.Inverse(&mat1); err != nil {
-		return err
+	if err := m1Inv.Inverse(&mat1); err != nil {
+		pinv, err := Pseudoinverse(&mat1)
+		if err != nil {
+			return err
+		}
+		m1Inv.CloneFrom(pinv)
 	}
-	mat2.Mul(&mat1, matXv.T())
+	mat2.Mul(&m1Inv, matXv.T())
 	matTheta.Mul(&mat2, matY)
 	row, _ := matTheta.Caps()
 	for i := 0; i < row; i++ {
@@ -66,4 +70,40 @@ func (crv *Curve) Verify() error {
 	}
 
 	return nil
+}
+
+func (crv *Curve) Theta(i int) float64 {
+	if i < len(crv.thetas) {
+		return crv.thetas[i]
+	}
+	return 0
+}
+
+func Pseudoinverse(a mat.Matrix) (*mat.Dense, error) {
+	var svd mat.SVD
+	if ok := svd.Factorize(a, mat.SVDFull); !ok {
+		return nil, fmt.Errorf("failed to factorize a")
+	}
+	r, c := a.Dims()
+	svdS := svd.Values(nil)
+	sData := []float64{}
+	for i := 0; i < r*c; i++ {
+		if i/c == i%c {
+			sData = append(sData, 1/svdS[i/c])
+			continue
+		}
+		sData = append(sData, 0)
+	}
+	Spinv := mat.NewDense(r, c, sData).T()
+	U := mat.NewDense(r, r, nil)
+	V := mat.NewDense(c, c, nil)
+
+	var m1, m2 mat.Dense
+	svd.UTo(U)
+	svd.VTo(V)
+
+	m1.Mul(V, Spinv)
+	m2.Mul(&m1, U.T())
+
+	return &m2, nil
 }
