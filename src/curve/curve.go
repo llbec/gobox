@@ -79,6 +79,10 @@ func (crv *Curve) Theta(i int) float64 {
 	return 0
 }
 
+func (crv *Curve) Thetas() []float64 {
+	return crv.thetas
+}
+
 func Pseudoinverse(a mat.Matrix) (*mat.Dense, error) {
 	var svd mat.SVD
 	if ok := svd.Factorize(a, mat.SVDFull); !ok {
