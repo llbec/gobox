@@ -12,12 +12,19 @@ import (
 )
 
 func main() {
+	//获取命令行参数
+	if len(os.Args) < 2 {
+		fmt.Println("Example: ./tsBot filePath")
+		return
+	}
+	filePath := os.Args[1]
+
 	bs := make([]byte, 4)
 	timeUnix := time.Now().Unix()
 	binary.BigEndian.PutUint32(bs, uint32(timeUnix))
 
 	//读写方式打开文件
-	file, err := os.OpenFile("module_100glr4.c", os.O_RDWR, 0666)
+	file, err := os.OpenFile(filePath, os.O_RDWR, 0666)
 	if err != nil {
 		fmt.Println("open file filed.", err)
 		return
@@ -50,20 +57,20 @@ func main() {
 				return
 			}
 		}
-		fmt.Println(line)
+		//fmt.Println(line)
 
 		//根据关键词覆盖当前行
 		tsRegexp := regexp.MustCompile(`0x[0-9a-fA-F]+;`)
-		if strings.Contains(line, "MOD_TIME_STAMP0") {
+		if strings.Contains(line, "TSV_TIME_STAMP0") {
 			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[0])))
 			file.WriteAt(bytes, pos)
-		} else if strings.Contains(line, "MOD_TIME_STAMP1") {
+		} else if strings.Contains(line, "TSV_TIME_STAMP1") {
 			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[1])))
 			file.WriteAt(bytes, pos)
-		} else if strings.Contains(line, "MOD_TIME_STAMP2") {
+		} else if strings.Contains(line, "TSV_TIME_STAMP2") {
 			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[2])))
 			file.WriteAt(bytes, pos)
-		} else if strings.Contains(line, "MOD_TIME_STAMP3") {
+		} else if strings.Contains(line, "TSV_TIME_STAMP3") {
 			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[3])))
 			file.WriteAt(bytes, pos)
 
