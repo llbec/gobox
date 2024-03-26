@@ -62,19 +62,19 @@ func main() {
 		//根据关键词覆盖当前行
 		tsRegexp := regexp.MustCompile(`0x[0-9a-fA-F]+;`)
 		if strings.Contains(line, "TSV_TIME_STAMP0") {
-			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[0])))
+			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%02X;", bs[0])))
 			file.WriteAt(bytes, pos)
 		} else if strings.Contains(line, "TSV_TIME_STAMP1") {
-			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[1])))
+			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%02X;", bs[1])))
 			file.WriteAt(bytes, pos)
 		} else if strings.Contains(line, "TSV_TIME_STAMP2") {
-			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[2])))
+			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%02X;", bs[2])))
 			file.WriteAt(bytes, pos)
 		} else if strings.Contains(line, "TSV_TIME_STAMP3") {
-			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%2X;", bs[3])))
+			bytes := []byte(tsRegexp.ReplaceAllString(line, fmt.Sprintf("0x%02X;", bs[3])))
 			file.WriteAt(bytes, pos)
 
-			fmt.Printf("Timestamp update to %v\n", time.Unix(timeUnix, 0).Format("2006-01-02 15:04:05"))
+			fmt.Printf("Timestamp update to %v(0x%02X, 0x%02X, 0x%02X, 0x%02X)\n", time.Unix(timeUnix, 0).Format("2006-01-02 15:04:05"), bs[0], bs[1], bs[2], bs[3])
 
 			return
 		}
