@@ -1,0 +1,10 @@
+host_ip: "127.0.0.1"
+host_port: 8000
+send_file: "send.msg"
+periodic_send: true
+send_interval: 1000 # 发送间隔，单位为毫秒
+send_data: true
+wait_time: 5 # 等待时间，单位为秒
+log_file: "server.log"   # 日志输出文件
+tcp_type: "server"  # tcp类型，server or client
+encode_type: "string"  # 编码类型，hex or string
