@@ -1,14 +1,10 @@
-package main
+package cdcs_squadron
 
 import (
 	"context"
 	"log"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-)
-
-var (
-	server *mcp.Server
 )
 
 type Input struct {
@@ -29,7 +25,7 @@ func SayHi(ctx context.Context, req *mcp.CallToolRequest, input Input) (
 
 func main() {
 	// Create a server with a single tool.
-	server = mcp.NewServer(&mcp.Implementation{Name: "greeter", Version: "v1.0.0"}, nil)
+	server := createMcpServer()
 	mcp.AddTool(server, &mcp.Tool{Name: "greet", Description: "say hi"}, SayHi)
 	// Run the server over stdin/stdout, until the client disconnects.
 	if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
