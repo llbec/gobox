@@ -238,10 +238,10 @@ func (am *ActManager) prepareOperationDir(operation string) (string, error) {
 }
 
 // moveFilesToDir 将文件从目标路径移动到指定目录
-func (am *ActManager) moveFilesToDir(filenames []string, dstDir string) error {
-	for _, filename := range filenames {
-		srcPath := filepath.Join(am.TargetPath, filename)
-		dstPath := filepath.Join(dstDir, filename)
+func (am *ActManager) moveFilesToDir(docs []DocumentInfo, dstDir string) error {
+	for _, doc := range docs {
+		srcPath := filepath.Join(am.TargetPath, doc.Filename)
+		dstPath := filepath.Join(dstDir, doc.Filename)
 		if err := moveFile(srcPath, dstPath); err != nil {
 			return err
 		}
@@ -262,10 +262,11 @@ func (am *ActManager) processFiles(opDir string, operation string, newPatientID 
 
 	// 存储文件详情
 	type fileDetail struct {
-		index     int
-		filename  string
-		patientID string
-		testTime  time.Time
+		index        int
+		filename     string
+		patientID    string
+		testTime     time.Time
+		originalFile string
 	}
 	var fileDetails []fileDetail
 
@@ -313,7 +314,7 @@ func (am *ActManager) processFiles(opDir string, operation string, newPatientID 
 			newContent = content
 			prefix = "R"
 		case "modify":
-			modifiedContent := actpatientPattern.ReplaceAll(content, []byte(fmt.Sprintf(`PatientID="%s"`, newPatientID)))
+			modifiedContent := actpatientPattern.ReplaceAll(content, fmt.Appendf(nil, `PatientID="%s"`, newPatientID))
 			newContent = modifiedContent
 			prefix = "M"
 		}
@@ -328,11 +329,24 @@ func (am *ActManager) processFiles(opDir string, operation string, newPatientID 
 
 		generatedCount++
 		fileDetails = append(fileDetails, fileDetail{
-			index:     generatedCount,
-			filename:  newFilename,
-			patientID: patientID,
-			testTime:  testTime,
+			index:        generatedCount,
+			filename:     newFilename,
+			patientID:    patientID,
+			testTime:     testTime,
+			originalFile: file.Name(),
 		})
+	}
+
+	// 创建结果文件
+	resultFilePath := filepath.Join(opDir, "result.txt")
+	resultFile, err := os.Create(resultFilePath)
+	if err == nil {
+		defer resultFile.Close()
+
+		for _, detail := range fileDetails {
+			line := fmt.Sprintf("%s|%s\n", detail.filename, detail.originalFile)
+			_, _ = resultFile.WriteString(line)
+		}
 	}
 
 	// 构建返回字符串
@@ -348,13 +362,13 @@ func (am *ActManager) processFiles(opDir string, operation string, newPatientID 
 }
 
 // ResendFiles 将指定文件移动到重发目录并重新发送
-func (am *ActManager) ResendFiles(filenames []string) (string, error) {
+func (am *ActManager) ResendFiles(docs []DocumentInfo) (string, error) {
 	resendDir, err := am.prepareOperationDir("resend")
 	if err != nil {
 		return "", err
 	}
 
-	if err := am.moveFilesToDir(filenames, resendDir); err != nil {
+	if err := am.moveFilesToDir(docs, resendDir); err != nil {
 		return "", err
 	}
 
@@ -362,17 +376,67 @@ func (am *ActManager) ResendFiles(filenames []string) (string, error) {
 }
 
 // ModifyFiles 修改指定文件的患者ID并重新发送
-func (am *ActManager) ModifyFiles(filenames []string, newPatientID string) (string, error) {
+func (am *ActManager) ModifyFiles(docs []DocumentInfo, newPatientID string) (string, error) {
 	modifyDir, err := am.prepareOperationDir("modify")
 	if err != nil {
 		return "", err
 	}
 
-	if err := am.moveFilesToDir(filenames, modifyDir); err != nil {
+	if err := am.moveFilesToDir(docs, modifyDir); err != nil {
 		return "", err
 	}
 
 	return am.processFiles(modifyDir, "modify", newPatientID)
+}
+
+// Rollback 回滚操作
+func (am *ActManager) Rollback(operation string, index int) (string, error) {
+	basePath := filepath.Join(am.BackupPath, operation)
+	opDir := filepath.Join(basePath, fmt.Sprintf("%d", index))
+
+	if _, err := os.Stat(opDir); os.IsNotExist(err) {
+		return "", fmt.Errorf("操作目录不存在: %s", opDir)
+	}
+
+	resultFilePath := filepath.Join(opDir, "result.txt")
+	content, err := readFile(resultFilePath)
+	if err != nil {
+		return "", fmt.Errorf("读取结果文件失败: %w", err)
+	}
+
+	lines := strings.Split(string(content), "\n")
+	rollbackCount := 0
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		parts := strings.Split(line, "|")
+		if len(parts) != 2 {
+			continue
+		}
+
+		newFilename := parts[0]
+		originalFilename := parts[1]
+
+		newFilePath := filepath.Join(am.TargetPath, newFilename)
+		originalFilePath := filepath.Join(opDir, originalFilename)
+
+		if err := os.Remove(newFilePath); err != nil && !os.IsNotExist(err) {
+			continue
+		}
+
+		targetOriginalPath := filepath.Join(am.TargetPath, originalFilename)
+		if err := moveFile(originalFilePath, targetOriginalPath); err != nil {
+			continue
+		}
+
+		rollbackCount++
+	}
+
+	return fmt.Sprintf("回滚完成，共回滚 %d 个文件", rollbackCount), nil
 }
 
 // readFile 读取文件内容

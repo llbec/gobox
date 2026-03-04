@@ -2,7 +2,12 @@ module cdcs-squadron
 
 go 1.24.2
 
-require github.com/modelcontextprotocol/go-sdk v1.4.0
+require (
+	github.com/modelcontextprotocol/go-sdk v1.4.0
+	gobox v0.0.0
+)
+
+replace gobox => ../..
 
 require (
 	github.com/google/jsonschema-go v0.4.2 // indirect
