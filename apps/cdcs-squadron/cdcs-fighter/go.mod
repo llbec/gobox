@@ -1,4 +1,4 @@
-module cdcs-squadron
+module cdcs-fighter
 
 go 1.24.2
 
@@ -7,7 +7,7 @@ require (
 	gobox v0.0.0
 )
 
-replace gobox => ../..
+replace gobox => ../../..
 
 require (
 	github.com/google/jsonschema-go v0.4.2 // indirect
