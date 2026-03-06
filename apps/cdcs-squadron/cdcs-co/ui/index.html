@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDCS Squadron 客户端</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#10b981',
+                        danger: '#ef4444',
+                        dark: '#1e293b',
+                    },
+                },
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .transition-all-300 {
+                transition: all 0.3s ease;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- 头部 -->
+        <header class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">CDCS Squadron 客户端</h1>
+                    <p class="text-gray-600 mt-1">管理和监控CDCS Squadron服务器</p>
+                </div>
+                <button id="refreshServers" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all-300 flex items-center">
+                    <i class="fa fa-refresh mr-2"></i> 刷新服务器
+                </button>
+            </div>
+        </header>
+
+        <!-- 服务器选择 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">服务器选择</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="col-span-2">
+                    <label for="serverSelect" class="block text-sm font-medium text-gray-700 mb-1">选择服务器</label>
+                    <select id="serverSelect" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="">默认服务器</option>
+                    </select>
+                </div>
+                <div class="flex items-end">
+                    <button id="checkHealth" class="w-full bg-secondary text-white px-4 py-2 rounded-md hover:bg-green-600 transition-all-300 flex items-center justify-center">
+                        <i class="fa fa-heartbeat mr-2"></i> 健康检查
+                    </button>
+                </div>
+            </div>
+            <div id="healthResult" class="mt-4 hidden p-4 rounded-md"></div>
+        </div>
+
+        <!-- 功能选项卡 -->
+        <div class="bg-white rounded-lg shadow-md mb-8">
+            <div class="border-b border-gray-200">
+                <nav class="flex -mb-px">
+                    <button class="tab-btn active py-4 px-6 border-b-2 border-primary text-primary font-medium" data-tab="config">配置管理</button>
+                    <button class="tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="archive">文件归档</button>
+                    <button class="tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="filter">文件筛选</button>
+                    <button class="tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="resend">文件重传</button>
+                    <button class="tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="modify">文件修改</button>
+                    <button class="tab-btn py-4 px-6 border-b-2 border-transparent text-gray-500 hover:text-gray-700" data-tab="rollback">操作回滚</button>
+                </nav>
+            </div>
+            
+            <!-- 配置管理 -->
+            <div class="tab-content active p-6" id="config">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">设置配置</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="targetPath" class="block text-sm font-medium text-gray-700 mb-1">目标路径</label>
+                        <input type="text" id="targetPath" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="d:\\de">
+                    </div>
+                    <div>
+                        <label for="backupPath" class="block text-sm font-medium text-gray-700 mb-1">备份路径</label>
+                        <input type="text" id="backupPath" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="d:\\deBackup">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button id="saveConfig" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all-300">
+                        保存配置
+                    </button>
+                </div>
+                <div id="configResult" class="mt-4 hidden p-4 rounded-md"></div>
+            </div>
+
+            <!-- 文件归档 -->
+            <div class="tab-content hidden p-6" id="archive">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">文件归档</h3>
+                <div class="mb-4">
+                    <label for="beforeTime" class="block text-sm font-medium text-gray-700 mb-1">归档时间</label>
+                    <input type="datetime-local" id="beforeTime" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div class="mt-4">
+                    <button id="archiveFiles" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all-300">
+                        开始归档
+                    </button>
+                </div>
+                <div id="archiveResult" class="mt-4 hidden p-4 rounded-md"></div>
+            </div>
+
+            <!-- 文件筛选 -->
+            <div class="tab-content hidden p-6" id="filter">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">文件筛选</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="patientID" class="block text-sm font-medium text-gray-700 mb-1">患者ID</label>
+                        <input type="text" id="patientID" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="留空则不筛选">
+                    </div>
+                    <div>
+                        <label for="timeFilterType" class="block text-sm font-medium text-gray-700 mb-1">时间筛选类型</label>
+                        <select id="timeFilterType" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="">不筛选</option>
+                            <option value="equal">等于</option>
+                            <option value="before">早于</option>
+                            <option value="after">晚于</option>
+                            <option value="range">范围内</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="timeInputs" class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
+                    <div id="singleTime">
+                        <label for="time" class="block text-sm font-medium text-gray-700 mb-1">时间</label>
+                        <input type="datetime-local" id="time" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div id="rangeTime" class="hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="startTime" class="block text-sm font-medium text-gray-700 mb-1">起始时间</label>
+                                <input type="datetime-local" id="startTime" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                            <div>
+                                <label for="endTime" class="block text-sm font-medium text-gray-700 mb-1">结束时间</label>
+                                <input type="datetime-local" id="endTime" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button id="filterFiles" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all-300">
+                        开始筛选
+                    </button>
+                </div>
+                <div id="filterResult" class="mt-4 hidden">
+                    <div class="p-4 rounded-md mb-4"></div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">文件名</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">患者ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">测试时间</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="filterTableBody" class="bg-white divide-y divide-gray-200"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件重传 -->
+            <div class="tab-content hidden p-6" id="resend">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">文件重传</h3>
+                <div id="resendDocuments" class="mb-4 p-4 border border-gray-200 rounded-md">
+                    <p class="text-gray-600">请先在文件筛选中选择要重传的文件</p>
+                </div>
+                <div class="mt-4">
+                    <button id="resendFiles" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all-300" disabled>
+                        开始重传
+                    </button>
+                </div>
+                <div id="resendResult" class="mt-4 hidden p-4 rounded-md"></div>
+            </div>
+
+            <!-- 文件修改 -->
+            <div class="tab-content hidden p-6" id="modify">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">文件修改</h3>
+                <div id="modifyDocuments" class="mb-4 p-4 border border-gray-200 rounded-md">
+                    <p class="text-gray-600">请先在文件筛选中选择要修改的文件</p>
+                </div>
+                <div class="mb-4">
+                    <label for="newPatientID" class="block text-sm font-medium text-gray-700 mb-1">新的患者ID</label>
+                    <input type="text" id="newPatientID" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入新的患者ID">
+                </div>
+                <div class="mt-4">
+                    <button id="modifyFiles" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all-300" disabled>
+                        开始修改
+                    </button>
+                </div>
+                <div id="modifyResult" class="mt-4 hidden p-4 rounded-md"></div>
+            </div>
+
+            <!-- 操作回滚 -->
+            <div class="tab-content hidden p-6" id="rollback">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">操作回滚</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="operation" class="block text-sm font-medium text-gray-700 mb-1">操作类型</label>
+                        <select id="operation" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                            <option value="resend">重传</option>
+                            <option value="modify">修改</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="index" class="block text-sm font-medium text-gray-700 mb-1">目录编号</label>
+                        <input type="number" id="index" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入目录编号">
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button id="rollbackOperation" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-all-300">
+                        执行回滚
+                    </button>
+                </div>
+                <div id="rollbackResult" class="mt-4 hidden p-4 rounded-md"></div>
+            </div>
+        </div>
+
+        <!-- 服务器状态 -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">服务器状态</h2>
+            <div id="serverStatus" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- 服务器状态卡片将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let selectedDocuments = [];
+        
+        // DOM 加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化
+            loadServers();
+            setupEventListeners();
+            
+            // 每30秒自动刷新服务器状态
+            setInterval(loadServerStatus, 30000);
+        });
+        
+        // 加载服务器列表
+        function loadServers() {
+            fetch('/api/servers')
+                .then(response => response.json())
+                .then(data => {
+                    const serverSelect = document.getElementById('serverSelect');
+                    // 清空现有选项
+                    serverSelect.innerHTML = '<option value="">默认服务器</option>';
+                    // 添加服务器选项
+                    data.forEach(server => {
+                        const option = document.createElement('option');
+                        option.value = server.name;
+                        option.textContent = `${server.name} (${server.url})`;
+                        serverSelect.appendChild(option);
+                    });
+                    // 加载服务器状态
+                    loadServerStatus();
+                })
+                .catch(error => {
+                    console.error('加载服务器失败:', error);
+                    showError('加载服务器失败，请刷新页面重试');
+                });
+        }
+        
+        // 加载服务器状态
+        function loadServerStatus() {
+            fetch('/health')
+                .then(response => response.json())
+                .then(data => {
+                    const serverStatus = document.getElementById('serverStatus');
+                    serverStatus.innerHTML = '';
+                    
+                    if (data.servers) {
+                        Object.entries(data.servers).forEach(([serverName, status]) => {
+                            const card = document.createElement('div');
+                            let statusClass = 'bg-green-100 border-green-400 text-green-800';
+                            let statusIcon = 'fa-check-circle';
+                            let statusText = '健康';
+                            
+                            if (status.status === 'error') {
+                                statusClass = 'bg-red-100 border-red-400 text-red-800';
+                                statusIcon = 'fa-times-circle';
+                                statusText = '异常';
+                            }
+                            
+                            card.className = `border rounded-md p-4 ${statusClass}`;
+                            card.innerHTML = `
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-medium">${serverName}</h3>
+                                    <span class="text-xl"><i class="fa ${statusIcon}"></i></span>
+                                </div>
+                                <p class="mt-2">状态: ${statusText}</p>
+                                ${status.message ? `<p class="mt-1 text-sm">${status.message}</p>` : ''}
+                            `;
+                            serverStatus.appendChild(card);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('加载服务器状态失败:', error);
+                });
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 选项卡切换
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tab = this.getAttribute('data-tab');
+                    
+                    // 切换选项卡按钮状态
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('active', 'border-primary', 'text-primary');
+                        b.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    this.classList.add('active', 'border-primary', 'text-primary');
+                    this.classList.remove('border-transparent', 'text-gray-500');
+                    
+                    // 切换内容
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.add('hidden');
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(tab).classList.remove('hidden');
+                    document.getElementById(tab).classList.add('active');
+                });
+            });
+            
+            // 时间筛选类型变化
+            document.getElementById('timeFilterType').addEventListener('change', function() {
+                const timeInputs = document.getElementById('timeInputs');
+                const singleTime = document.getElementById('singleTime');
+                const rangeTime = document.getElementById('rangeTime');
+                
+                if (this.value === '') {
+                    timeInputs.classList.add('hidden');
+                } else {
+                    timeInputs.classList.remove('hidden');
+                    if (this.value === 'range') {
+                        singleTime.classList.add('hidden');
+                        rangeTime.classList.remove('hidden');
+                    } else {
+                        singleTime.classList.remove('hidden');
+                        rangeTime.classList.add('hidden');
+                    }
+                }
+            });
+            
+            // 刷新服务器
+            document.getElementById('refreshServers').addEventListener('click', loadServers);
+            
+            // 健康检查
+            document.getElementById('checkHealth').addEventListener('click', function() {
+                const serverName = document.getElementById('serverSelect').value;
+                const healthResult = document.getElementById('healthResult');
+                
+                healthResult.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
+                healthResult.innerHTML = '<div class="flex items-center"><i class="fa fa-spinner fa-spin mr-2"></i> 正在检查...</div>';
+                
+                fetch(`/api/health${serverName ? `?server=${serverName}` : ''}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('健康检查失败');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        healthResult.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800');
+                        healthResult.innerHTML = `
+                            <div class="flex items-center mb-2">
+                                <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                                <h4 class="font-medium">健康检查成功</h4>
+                            </div>
+                            <p>状态: ${data.status}</p>
+                            <p>时间戳: ${new Date(data.timestamp).toLocaleString()}</p>
+                            <p>运行时间: ${data.uptime}</p>
+                            <p>Go版本: ${data.go_version}</p>
+                            <p>主机名: ${data.hostname}</p>
+                        `;
+                    })
+                    .catch(error => {
+                        healthResult.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800');
+                        healthResult.innerHTML = `
+                            <div class="flex items-center mb-2">
+                                <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                                <h4 class="font-medium">健康检查失败</h4>
+                            </div>
+                            <p>${error.message}</p>
+                        `;
+                    });
+            });
+            
+            // 保存配置
+            document.getElementById('saveConfig').addEventListener('click', function() {
+                const targetPath = document.getElementById('targetPath').value || 'd\\de';
+                const backupPath = document.getElementById('backupPath').value || 'd\\deBackup';
+                const serverName = document.getElementById('serverSelect').value;
+                const configResult = document.getElementById('configResult');
+                
+                configResult.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
+                configResult.innerHTML = '<div class="flex items-center"><i class="fa fa-spinner fa-spin mr-2"></i> 正在保存...</div>';
+                
+                fetch(`/api/config${serverName ? `?server=${serverName}` : ''}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ targetPath, backupPath })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('保存配置失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    configResult.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800');
+                    configResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <h4 class="font-medium">保存配置成功</h4>
+                        </div>
+                        <p>${data.result}</p>
+                    `;
+                })
+                .catch(error => {
+                    configResult.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800');
+                    configResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <h4 class="font-medium">保存配置失败</h4>
+                        </div>
+                        <p>${error.message}</p>
+                    `;
+                });
+            });
+            
+            // 归档文件
+            document.getElementById('archiveFiles').addEventListener('click', function() {
+                const beforeTime = document.getElementById('beforeTime').value;
+                const serverName = document.getElementById('serverSelect').value;
+                const archiveResult = document.getElementById('archiveResult');
+                
+                if (!beforeTime) {
+                    showError('请选择归档时间');
+                    return;
+                }
+                
+                // 转换时间格式
+                const formattedTime = new Date(beforeTime).toISOString().slice(0, 19).replace('T', ' ');
+                
+                archiveResult.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
+                archiveResult.innerHTML = '<div class="flex items-center"><i class="fa fa-spinner fa-spin mr-2"></i> 正在归档...</div>';
+                
+                fetch(`/api/archive${serverName ? `?server=${serverName}` : ''}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ beforeTime: formattedTime })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('归档失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    archiveResult.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800');
+                    archiveResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <h4 class="font-medium">归档成功</h4>
+                        </div>
+                        <p>${data.result}</p>
+                    `;
+                })
+                .catch(error => {
+                    archiveResult.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800');
+                    archiveResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <h4 class="font-medium">归档失败</h4>
+                        </div>
+                        <p>${error.message}</p>
+                    `;
+                });
+            });
+            
+            // 筛选文件
+            document.getElementById('filterFiles').addEventListener('click', function() {
+                const patientID = document.getElementById('patientID').value;
+                const timeFilterType = document.getElementById('timeFilterType').value;
+                const time = document.getElementById('time').value;
+                const startTime = document.getElementById('startTime').value;
+                const endTime = document.getElementById('endTime').value;
+                const serverName = document.getElementById('serverSelect').value;
+                const filterResult = document.getElementById('filterResult');
+                const filterTableBody = document.getElementById('filterTableBody');
+                
+                // 准备请求数据
+                const data = { patientID, timeFilterType };
+                if (timeFilterType === 'range') {
+                    if (startTime && endTime) {
+                        data.startTime = new Date(startTime).toISOString().slice(0, 19).replace('T', ' ');
+                        data.endTime = new Date(endTime).toISOString().slice(0, 19).replace('T', ' ');
+                    } else {
+                        showError('请选择完整的时间范围');
+                        return;
+                    }
+                } else if (timeFilterType !== '') {
+                    if (time) {
+                        data.time = new Date(time).toISOString().slice(0, 19).replace('T', ' ');
+                    } else {
+                        showError('请选择时间');
+                        return;
+                    }
+                }
+                
+                filterResult.classList.remove('hidden');
+                filterResult.querySelector('div').classList.remove('bg-green-100', 'bg-red-100');
+                filterResult.querySelector('div').innerHTML = '<div class="flex items-center"><i class="fa fa-spinner fa-spin mr-2"></i> 正在筛选...</div>';
+                filterTableBody.innerHTML = '';
+                
+                fetch(`/api/filter${serverName ? `?server=${serverName}` : ''}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('筛选失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    filterResult.querySelector('div').classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800');
+                    filterResult.querySelector('div').innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <h4 class="font-medium">筛选成功</h4>
+                        </div>
+                        <p>${data.result}</p>
+                    `;
+                    
+                    // 清空选中的文档
+                    selectedDocuments = [];
+                    
+                    // 填充表格
+                    if (data.documents && data.documents.length > 0) {
+                        data.documents.forEach((doc, index) => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap">${doc.fileName}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">${doc.patientID}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">${new Date(doc.testTime).toLocaleString()}</td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" class="document-checkbox mr-2" data-index="${index}" value="${JSON.stringify(doc)}">
+                                        <label>选择</label>
+                                    </div>
+                                </td>
+                            `;
+                            filterTableBody.appendChild(row);
+                        });
+                        
+                        // 添加复选框事件
+                        document.querySelectorAll('.document-checkbox').forEach(checkbox => {
+                            checkbox.addEventListener('change', function() {
+                                const doc = JSON.parse(this.value);
+                                if (this.checked) {
+                                    selectedDocuments.push(doc);
+                                } else {
+                                    selectedDocuments = selectedDocuments.filter(d => d.fileName !== doc.fileName);
+                                }
+                                
+                                // 更新重传和修改页面
+                                updateDocumentSelection();
+                            });
+                        });
+                    } else {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `<td colspan="4" class="px-6 py-4 text-center text-gray-500">没有符合条件的文档</td>`;
+                        filterTableBody.appendChild(row);
+                    }
+                })
+                .catch(error => {
+                    filterResult.querySelector('div').classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800');
+                    filterResult.querySelector('div').innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <h4 class="font-medium">筛选失败</h4>
+                        </div>
+                        <p>${error.message}</p>
+                    `;
+                });
+            });
+            
+            // 重传文件
+            document.getElementById('resendFiles').addEventListener('click', function() {
+                if (selectedDocuments.length === 0) {
+                    showError('请先选择要重传的文件');
+                    return;
+                }
+                
+                const serverName = document.getElementById('serverSelect').value;
+                const resendResult = document.getElementById('resendResult');
+                
+                resendResult.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
+                resendResult.innerHTML = '<div class="flex items-center"><i class="fa fa-spinner fa-spin mr-2"></i> 正在重传...</div>';
+                
+                fetch(`/api/resend${serverName ? `?server=${serverName}` : ''}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ documents: selectedDocuments })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('重传失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    resendResult.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800');
+                    resendResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <h4 class="font-medium">重传成功</h4>
+                        </div>
+                        <p>${data.result}</p>
+                    `;
+                })
+                .catch(error => {
+                    resendResult.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800');
+                    resendResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <h4 class="font-medium">重传失败</h4>
+                        </div>
+                        <p>${error.message}</p>
+                    `;
+                });
+            });
+            
+            // 修改文件
+            document.getElementById('modifyFiles').addEventListener('click', function() {
+                if (selectedDocuments.length === 0) {
+                    showError('请先选择要修改的文件');
+                    return;
+                }
+                
+                const newPatientID = document.getElementById('newPatientID').value;
+                if (!newPatientID) {
+                    showError('请输入新的患者ID');
+                    return;
+                }
+                
+                const serverName = document.getElementById('serverSelect').value;
+                const modifyResult = document.getElementById('modifyResult');
+                
+                modifyResult.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
+                modifyResult.innerHTML = '<div class="flex items-center"><i class="fa fa-spinner fa-spin mr-2"></i> 正在修改...</div>';
+                
+                fetch(`/api/modify${serverName ? `?server=${serverName}` : ''}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ documents: selectedDocuments, newPatientID })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('修改失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    modifyResult.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800');
+                    modifyResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <h4 class="font-medium">修改成功</h4>
+                        </div>
+                        <p>${data.result}</p>
+                    `;
+                })
+                .catch(error => {
+                    modifyResult.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800');
+                    modifyResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <h4 class="font-medium">修改失败</h4>
+                        </div>
+                        <p>${error.message}</p>
+                    `;
+                });
+            });
+            
+            // 回滚操作
+            document.getElementById('rollbackOperation').addEventListener('click', function() {
+                const operation = document.getElementById('operation').value;
+                const index = document.getElementById('index').value;
+                const serverName = document.getElementById('serverSelect').value;
+                const rollbackResult = document.getElementById('rollbackResult');
+                
+                if (!index) {
+                    showError('请输入目录编号');
+                    return;
+                }
+                
+                rollbackResult.classList.remove('hidden', 'bg-green-100', 'bg-red-100');
+                rollbackResult.innerHTML = '<div class="flex items-center"><i class="fa fa-spinner fa-spin mr-2"></i> 正在回滚...</div>';
+                
+                fetch(`/api/rollback${serverName ? `?server=${serverName}` : ''}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ operation, index: parseInt(index) })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('回滚失败');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    rollbackResult.classList.add('bg-green-100', 'border', 'border-green-400', 'text-green-800');
+                    rollbackResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-check-circle text-green-500 mr-2"></i>
+                            <h4 class="font-medium">回滚成功</h4>
+                        </div>
+                        <p>${data.result}</p>
+                    `;
+                })
+                .catch(error => {
+                    rollbackResult.classList.add('bg-red-100', 'border', 'border-red-400', 'text-red-800');
+                    rollbackResult.innerHTML = `
+                        <div class="flex items-center mb-2">
+                            <i class="fa fa-times-circle text-red-500 mr-2"></i>
+                            <h4 class="font-medium">回滚失败</h4>
+                        </div>
+                        <p>${error.message}</p>
+                    `;
+                });
+            });
+        }
+        
+        // 更新文档选择
+        function updateDocumentSelection() {
+            const resendDocuments = document.getElementById('resendDocuments');
+            const modifyDocuments = document.getElementById('modifyDocuments');
+            const resendFilesBtn = document.getElementById('resendFiles');
+            const modifyFilesBtn = document.getElementById('modifyFiles');
+            
+            if (selectedDocuments.length > 0) {
+                resendDocuments.innerHTML = `<p class="text-gray-600">已选择 ${selectedDocuments.length} 个文档</p>`;
+                modifyDocuments.innerHTML = `<p class="text-gray-600">已选择 ${selectedDocuments.length} 个文档</p>`;
+                resendFilesBtn.disabled = false;
+                modifyFilesBtn.disabled = false;
+            } else {
+                resendDocuments.innerHTML = '<p class="text-gray-600">请先在文件筛选中选择要重传的文件</p>';
+                modifyDocuments.innerHTML = '<p class="text-gray-600">请先在文件筛选中选择要修改的文件</p>';
+                resendFilesBtn.disabled = true;
+                modifyFilesBtn.disabled = true;
+            }
+        }
+        
+        // 显示错误消息
+        function showError(message) {
+            // 创建错误提示
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-800 p-4 rounded-md shadow-lg z-50';
+            errorDiv.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fa fa-exclamation-circle mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            // 添加到页面
+            document.body.appendChild(errorDiv);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                errorDiv.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                setTimeout(() => {
+                    document.body.removeChild(errorDiv);
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
