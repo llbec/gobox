@@ -41,3 +41,6 @@ cmd/
 
 #Output
 download/
+
+#Logger files
+*.log
