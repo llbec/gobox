@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/llbec/gobox/apps/lepu/config"
 	"github.com/llbec/gobox/apps/lepu/logger"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -73,7 +74,7 @@ func GetPatients(db *sql.DB, startTime time.Time) ([]CaseInfo, error) {
 
 		// Parse start_time
 		if startTimeStr.Valid {
-			if t, err := time.Parse("2006-01-02 15:04:05", startTimeStr.String); err == nil {
+			if t, err := time.ParseInLocation("2006-01-02 15:04:05", startTimeStr.String, config.TimezoneLocation); err == nil {
 				p.StartTime = t
 			} else {
 				// Try different format
@@ -85,7 +86,7 @@ func GetPatients(db *sql.DB, startTime time.Time) ([]CaseInfo, error) {
 
 		// Parse end_time
 		if endTimeStr.Valid {
-			if t, err := time.Parse("2006-01-02 15:04:05", endTimeStr.String); err == nil {
+			if t, err := time.ParseInLocation("2006-01-02 15:04:05", endTimeStr.String, config.TimezoneLocation); err == nil {
 				p.EndTime = &t
 			} else {
 				// Try different format
@@ -233,7 +234,7 @@ func GetECGData(db *sql.DB, caseID string, start, end time.Time) ([]ECGData, err
 		}
 
 		// Parse data_time
-		if t, err := time.Parse("2006-01-02 15:04:05", dataTimeStr); err == nil {
+		if t, err := time.ParseInLocation("2006-01-02 15:04:05", dataTimeStr, config.TimezoneLocation); err == nil {
 			d.DataTime = t
 		} else {
 			// Try different format
@@ -266,7 +267,7 @@ func GetSPO2Data(db *sql.DB, caseID string, start, end time.Time) ([]SPO2Data, e
 		}
 
 		// Parse data_time
-		if t, err := time.Parse("2006-01-02 15:04:05", dataTimeStr); err == nil {
+		if t, err := time.ParseInLocation("2006-01-02 15:04:05", dataTimeStr, config.TimezoneLocation); err == nil {
 			d.DataTime = t
 		} else {
 			// Try different format
@@ -300,7 +301,7 @@ func GetRespData(db *sql.DB, caseID string, start, end time.Time) ([]RespData, e
 		}
 
 		// Parse data_time
-		if t, err := time.Parse("2006-01-02 15:04:05", dataTimeStr); err == nil {
+		if t, err := time.ParseInLocation("2006-01-02 15:04:05", dataTimeStr, config.TimezoneLocation); err == nil {
 			d.DataTime = t
 		} else {
 			// Try different format
@@ -333,7 +334,7 @@ func GetNIBPData(db *sql.DB, caseID string, start, end time.Time) ([]NIBPData, e
 		}
 
 		// Parse data_time
-		if t, err := time.Parse("2006-01-02 15:04:05", dataTimeStr); err == nil {
+		if t, err := time.ParseInLocation("2006-01-02 15:04:05", dataTimeStr, config.TimezoneLocation); err == nil {
 			d.DataTime = t
 		} else {
 			// Try different format
